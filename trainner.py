@@ -35,7 +35,7 @@ class Trainer():
     def train(self, epoch, batch_size=10):
         # Setting the tqdm progress bar
         total = len(self.train_data)
-        update_interval = max(1, total // 100)  # 每1%更新一次，确保至少为1
+        update_interval = max(1, total // 10)  # 每1%更新一次，确保至少为1
 
         data_iter = tqdm.tqdm(enumerate(self.train_data),
                               desc="EP_%s:%d" % ("train", epoch),
@@ -94,14 +94,14 @@ class Trainer():
 
     def test(self, epoch, batch_size=10):
         total = len(self.test_data)
-        update_interval = max(1, total // 100)  # 每1%更新一次，确保至少为1
+        update_interval = max(1, total // 10)  # 每1%更新一次，确保至少为1
 
         data_iter = tqdm.tqdm(enumerate(self.test_data),
                               desc="EP_%s:%d" % ("test", epoch),
                               total=total,
                               bar_format="{l_bar}{r_bar}",
                               leave=True)
-
+        # self.model.eval()
         epoch_loss = []
         for i, data in data_iter:
             if isinstance(data, dict):
@@ -126,7 +126,9 @@ class Trainer():
             if i % update_interval == 0:
                 data_iter.set_postfix(post_fix)
                 data_iter.update(update_interval - (i % update_interval))
+        # self.model.train()
         return epoch_loss
+
     def load(self, file_path):
         """
         Loading the model from file_path

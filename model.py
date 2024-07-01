@@ -17,7 +17,7 @@ class DepthEmbeddingNetwork(nn.Module):
 
     def forward(self, attr_tensor, adj_tensor, tensor_u):
         # adj_tensor = torch.transpose(attr_tensor,0, 1)
-        print(adj_tensor.shape, tensor_u.shape)
+        # print(adj_tensor.shape, tensor_u.shape)
         tensor_u = torch.matmul(adj_tensor, tensor_u)
         for layer in self.linear_blockP:
             tensor_u = F.relu(layer(tensor_u))
