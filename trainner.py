@@ -42,6 +42,8 @@ class Trainer():
                               total=total,
                               bar_format="{l_bar}{r_bar}",
                               leave=True)
+        epoch_loss = []
+
         for i, data in data_iter:
             if isinstance(data, dict):
                 data = {key: value.to(self.device) for key, value in data.items()}
@@ -60,6 +62,7 @@ class Trainer():
             loss.backward()
             self.optimizer.step()
 
+            epoch_loss.append(loss.item())
             post_fix = {
                 "epoch": epoch,
                 "iter": i,
@@ -72,6 +75,8 @@ class Trainer():
         # 确保进度条在处理完所有数据后显示 100%
         if total % update_interval != 0:
             data_iter.update(total % update_interval)
+        return epoch_loss
+
 
     def save(self, epoch, file_path="output/parameter.model"):
         """
@@ -96,6 +101,8 @@ class Trainer():
                               total=total,
                               bar_format="{l_bar}{r_bar}",
                               leave=True)
+
+        epoch_loss = []
         for i, data in data_iter:
             if isinstance(data, dict):
                 data = {key: value.to(self.device) for key, value in data.items()}
@@ -110,6 +117,7 @@ class Trainer():
             attribute_vector2 = self.model.forward(data["attr_tensor2"], data["adj_tensor2"], tensor_u2)
             loss = self.criterion.forward(attribute_vector1, attribute_vector2, data["label"])
 
+            epoch_loss.append(loss.item())
             post_fix = {
                 "epoch": epoch,
                 "iter": i,
@@ -118,7 +126,7 @@ class Trainer():
             if i % update_interval == 0:
                 data_iter.set_postfix(post_fix)
                 data_iter.update(update_interval - (i % update_interval))
-
+        return epoch_loss
     def load(self, file_path):
         """
         Loading the model from file_path
