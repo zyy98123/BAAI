@@ -4,10 +4,11 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 import tqdm
 import os
+import numpy as np
+from sklearn.metrics import recall_score, accuracy_score, precision_score, f1_score
 
 import model
 import lossfunction
-
 
 class Trainer():
     def __init__(self, GEN: model.GraphEmbeddingNetwork, GENdataLoader: DataLoader, test_dataloader: DataLoader = None,
@@ -43,6 +44,8 @@ class Trainer():
                               bar_format="{l_bar}{r_bar}",
                               leave=True)
         epoch_loss = []
+        all_labels = []
+        all_predictions = []
 
         for i, data in data_iter:
             if isinstance(data, dict):
@@ -63,6 +66,11 @@ class Trainer():
             self.optimizer.step()
 
             epoch_loss.append(loss.item())
+
+            predictions = torch.argmax(attribute_vector1, dim=1)
+            all_labels.extend(data["label"].cpu().numpy())
+            all_predictions.extend(predictions.cpu().numpy())
+
             post_fix = {
                 "epoch": epoch,
                 "iter": i,
@@ -75,8 +83,16 @@ class Trainer():
         # 确保进度条在处理完所有数据后显示 100%
         if total % update_interval != 0:
             data_iter.update(total % update_interval)
-        return epoch_loss
 
+        # Calculate metrics
+        recall = recall_score(all_labels, all_predictions, average='macro')
+        accuracy = accuracy_score(all_labels, all_predictions)
+        precision = precision_score(all_labels, all_predictions, average='macro')
+        f1 = f1_score(all_labels, all_predictions, average='macro')
+
+        print(f"Train Epoch {epoch} - Loss: {np.mean(epoch_loss):.4f}, Recall: {recall:.4f}, Accuracy: {accuracy:.4f}, Precision: {precision:.4f}, F1: {f1:.4f}")
+
+        return epoch_loss, recall, accuracy, precision, f1
 
     def save(self, epoch, file_path="output/parameter.model"):
         """
@@ -92,42 +108,94 @@ class Trainer():
         print("EP:%d Model Saved on:" % epoch, output_path)
         return output_path
 
-    def test(self, epoch, batch_size=10):
-        total = len(self.test_data)
-        update_interval = max(1, total // 10)  # 每1%更新一次，确保至少为1
+    def test(self, epoch, batch_size=10, num_tests=1):
+        all_epoch_losses = []
+        all_recalls = []
+        all_accuracies = []
+        all_precisions = []
+        all_f1s = []
 
-        data_iter = tqdm.tqdm(enumerate(self.test_data),
-                              desc="EP_%s:%d" % ("test", epoch),
-                              total=total,
-                              bar_format="{l_bar}{r_bar}",
-                              leave=True)
-        # self.model.eval()
-        epoch_loss = []
-        for i, data in data_iter:
-            if isinstance(data, dict):
-                data = {key: value.to(self.device) for key, value in data.items()}
-            else:
-                print(f"Unexpected data format at index {i}: {data}")
-                continue
+        for _ in range(num_tests):
+            total = len(self.test_data)
+            update_interval = max(1, total // 10)  # 每1%更新一次，确保至少为1
 
-            tensor_u1 = torch.zeros(batch_size, data["adj_tensor1"].size(1), self.model.embedding_size).to(self.device)
-            tensor_u2 = torch.zeros(batch_size, data["adj_tensor2"].size(1), self.model.embedding_size).to(self.device)
+            data_iter = tqdm.tqdm(enumerate(self.test_data),
+                                  desc="EP_%s:%d" % ("test", epoch),
+                                  total=total,
+                                  bar_format="{l_bar}{r_bar}",
+                                  leave=True)
+            epoch_loss = []
+            all_labels = []
+            all_predictions = []
 
-            attribute_vector1 = self.model.forward(data["attr_tensor1"], data["adj_tensor1"], tensor_u1)
-            attribute_vector2 = self.model.forward(data["attr_tensor2"], data["adj_tensor2"], tensor_u2)
-            loss = self.criterion.forward(attribute_vector1, attribute_vector2, data["label"])
+            for i, data in data_iter:
+                if isinstance(data, dict):
+                    data = {key: value.to(self.device) for key, value in data.items()}
+                else:
+                    print(f"Unexpected data format at index {i}: {data}")
+                    continue
 
-            epoch_loss.append(loss.item())
-            post_fix = {
-                "epoch": epoch,
-                "iter": i,
-                "loss:": loss.item()
-            }
-            if i % update_interval == 0:
-                data_iter.set_postfix(post_fix)
-                data_iter.update(update_interval - (i % update_interval))
-        # self.model.train()
-        return epoch_loss
+                tensor_u1 = torch.zeros(batch_size, data["adj_tensor1"].size(1), self.model.embedding_size).to(
+                    self.device)
+                tensor_u2 = torch.zeros(batch_size, data["adj_tensor2"].size(1), self.model.embedding_size).to(
+                    self.device)
+
+                attribute_vector1 = self.model.forward(data["attr_tensor1"], data["adj_tensor1"], tensor_u1)
+                attribute_vector2 = self.model.forward(data["attr_tensor2"], data["adj_tensor2"], tensor_u2)
+                loss = self.criterion.forward(attribute_vector1, attribute_vector2, data["label"])
+
+                epoch_loss.append(loss.item())
+
+                # 确保 predictions 和 labels 数量一致
+                predictions = torch.argmax(attribute_vector1, dim=1)
+                labels = data["label"].cpu().numpy()
+
+                if len(labels) != len(predictions):
+                    print(f"Mismatch in number of labels and predictions at batch {i}")
+                    continue
+
+                all_labels.extend(labels)
+                all_predictions.extend(predictions.cpu().numpy())
+
+                recall = recall_score(all_labels, all_predictions, average='macro', zero_division=0)
+                accuracy = accuracy_score(all_labels, all_predictions)
+                precision = precision_score(all_labels, all_predictions, average='macro', zero_division=0)
+                f1 = f1_score(all_labels, all_predictions, average='macro', zero_division=0)
+
+                post_fix = {
+                    "epoch": epoch,
+                    "iter": i,
+                    "loss": loss.item(),
+                    "recall": recall,
+                    "accuracy": accuracy,
+                    "precision": precision,
+                    "f1": f1
+                }
+                if i % update_interval == 0:
+                    data_iter.set_postfix(post_fix)
+                    data_iter.update(update_interval - (i % update_interval))
+
+            # 确保进度条在处理完所有数据后显示 100%
+            if total % update_interval != 0:
+                data_iter.update(total % update_interval)
+
+            all_epoch_losses.append(np.mean(epoch_loss))
+            all_recalls.append(recall)
+            all_accuracies.append(accuracy)
+            all_precisions.append(precision)
+            all_f1s.append(f1)
+
+        # Average metrics over all tests
+        avg_loss = np.mean(all_epoch_losses)
+        avg_recall = np.mean(all_recalls)
+        avg_accuracy = np.mean(all_accuracies)
+        avg_precision = np.mean(all_precisions)
+        avg_f1 = np.mean(all_f1s)
+
+        print(
+            f"Test Epoch {epoch} - Avg Loss: {avg_loss:.4f}, Avg Recall: {avg_recall:.4f}, Avg Accuracy: {avg_accuracy:.4f}, Avg Precision: {avg_precision:.4f}, Avg F1: {avg_f1:.4f}")
+
+        return avg_loss, avg_recall, avg_accuracy, avg_precision, avg_f1
 
     def load(self, file_path):
         """
