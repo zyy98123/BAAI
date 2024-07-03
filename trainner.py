@@ -44,8 +44,6 @@ class Trainer():
                               bar_format="{l_bar}{r_bar}",
                               leave=True)
         epoch_loss = []
-        all_labels = []
-        all_predictions = []
 
         for i, data in data_iter:
             if isinstance(data, dict):
@@ -66,11 +64,6 @@ class Trainer():
             self.optimizer.step()
 
             epoch_loss.append(loss.item())
-
-            predictions = torch.argmax(attribute_vector1, dim=1)
-            all_labels.extend(data["label"].cpu().numpy())
-            all_predictions.extend(predictions.cpu().numpy())
-
             post_fix = {
                 "epoch": epoch,
                 "iter": i,
@@ -84,15 +77,7 @@ class Trainer():
         if total % update_interval != 0:
             data_iter.update(total % update_interval)
 
-        # Calculate metrics
-        recall = recall_score(all_labels, all_predictions, average='macro')
-        accuracy = accuracy_score(all_labels, all_predictions)
-        precision = precision_score(all_labels, all_predictions, average='macro')
-        f1 = f1_score(all_labels, all_predictions, average='macro')
-
-        print(f"Train Epoch {epoch} - Loss: {np.mean(epoch_loss):.4f}, Recall: {recall:.4f}, Accuracy: {accuracy:.4f}, Precision: {precision:.4f}, F1: {f1:.4f}")
-
-        return epoch_loss, recall, accuracy, precision, f1
+        return epoch_loss
 
     def save(self, epoch, file_path="output/parameter.model"):
         """
