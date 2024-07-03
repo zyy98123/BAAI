@@ -12,3 +12,18 @@ class CosSimLoss(nn.Module):
         # print(loss.size(), loss)
         loss = loss.mean()
         return loss
+
+
+class MarginLoss(nn.Module):
+
+    def __init__(self):
+        super(MarginLoss, self).__init__()
+
+    def forward(self, vector_feature1, vector_feature2, label):
+        distance = torch.sqrt(torch.sum(((vector_feature1 - vector_feature2) ** 2.0), dim=1))
+        loss_contrastive = torch.mean(
+            torch.clamp(label, min=0) * torch.pow(distance, 2) +
+            (1 - torch.clamp(label, min=0)) * torch.pow(torch.clamp(1 - distance, min=0.0), 2)
+        )
+        return loss_contrastive
+

@@ -12,7 +12,7 @@ import lossfunction
 
 class Trainer():
     def __init__(self, GEN: model.GraphEmbeddingNetwork, GENdataLoader: DataLoader, test_dataloader: DataLoader = None,
-                 lr: float = 1e-6, betas=(0.9, 0.999), with_cuda=True, cuda_devices=None, log_freq: int = 5):
+                 lr: float = 1e-6, betas=(0.9, 0.999), with_cuda=True, cuda_devices=None, log_freq: int = 5, lossFunction = lossfunction.CosSimLoss()):
         # test if cuda could be used
         cuda_condition = torch.cuda.is_available() and with_cuda
         print(f'CUDA available: {cuda_condition}')
@@ -28,7 +28,7 @@ class Trainer():
         self.test_data = test_dataloader
 
         self.optimizer = Adam(self.model.parameters(), lr=lr, betas=betas)
-        self.criterion = lossfunction.CosSimLoss()
+        self.criterion = lossFunction
         self.log_freq = log_freq
 
         print("Total Parameters:", sum([p.nelement() for p in self.model.parameters()]))
