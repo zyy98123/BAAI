@@ -20,10 +20,11 @@ class MarginLoss(nn.Module):
         super(MarginLoss, self).__init__()
 
     def forward(self, vector_feature1, vector_feature2, label):
-        distance = torch.sqrt(torch.sum(((vector_feature1 - vector_feature2) ** 2.0), dim=1))
+        label = (label + 1) / 2
+        distance = torch.sqrt(torch.sum((vector_feature1 - vector_feature2) ** 2, dim=1) + 1e-9)
         loss_contrastive = torch.mean(
-            torch.clamp(label, min=0) * torch.pow(distance, 2) +
-            (1 - torch.clamp(label, min=0)) * torch.pow(torch.clamp(1 - distance, min=0.0), 2)
+            label * torch.pow(distance, 2) +
+            (1 - label) * torch.pow(torch.clamp(1 - distance, min=0.0), 2)
         )
         return loss_contrastive
 
