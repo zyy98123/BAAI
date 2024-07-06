@@ -9,7 +9,6 @@ from sklearn.metrics import recall_score, accuracy_score, precision_score, f1_sc
 
 import model
 import lossfunction
-import prediction
 
 class Trainer():
     def __init__(self, GEN: model.GraphEmbeddingNetwork, GENdataLoader: DataLoader, test_dataloader: DataLoader = None,
@@ -58,7 +57,7 @@ class Trainer():
 
             attribute_vector1 = self.model.forward(data["attr_tensor1"], data["adj_tensor1"], tensor_u1)
             attribute_vector2 = self.model.forward(data["attr_tensor2"], data["adj_tensor2"], tensor_u2)
-            loss = self.criterion.forward(attribute_vector1, attribute_vector2, data["label"])
+            prediction, loss = self.criterion.forward(attribute_vector1, attribute_vector2, data["label"])
 
             self.optimizer.zero_grad()
             loss.backward()
