@@ -26,5 +26,6 @@ class MarginLoss(nn.Module):
             label * torch.pow(distance, 2) +
             (1 - label) * torch.pow(torch.clamp(1 - distance, min=0.0), 2)
         )
-        return loss_contrastive
+        prediction = torch.where(distance >= 0.5, torch.tensor(1), torch.tensor(0))
 
+        return prediction, loss_contrastive

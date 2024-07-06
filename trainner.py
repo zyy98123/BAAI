@@ -9,6 +9,7 @@ from sklearn.metrics import recall_score, accuracy_score, precision_score, f1_sc
 
 import model
 import lossfunction
+import prediction
 
 class Trainer():
     def __init__(self, GEN: model.GraphEmbeddingNetwork, GENdataLoader: DataLoader, test_dataloader: DataLoader = None,
@@ -127,12 +128,11 @@ class Trainer():
 
                 attribute_vector1 = self.model.forward(data["attr_tensor1"], data["adj_tensor1"], tensor_u1)
                 attribute_vector2 = self.model.forward(data["attr_tensor2"], data["adj_tensor2"], tensor_u2)
-                loss = self.criterion.forward(attribute_vector1, attribute_vector2, data["label"])
+                predictions, loss = self.criterion.forward(attribute_vector1, attribute_vector2, data["label"])
 
                 epoch_loss.append(loss.item())
 
                 # 确保 predictions 和 labels 数量一致
-                predictions = torch.argmax(attribute_vector1, dim=1)
                 labels = data["label"].cpu().numpy()
 
                 if len(labels) != len(predictions):
@@ -140,7 +140,7 @@ class Trainer():
                     continue
 
                 all_labels.extend(labels)
-                all_predictions.extend(predictions.cpu().numpy())
+                all_predictions.extend(predictions.detach().cpu().numpy())
 
                 recall = recall_score(all_labels, all_predictions, average='macro', zero_division=0)
                 accuracy = accuracy_score(all_labels, all_predictions)
