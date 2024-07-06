@@ -100,7 +100,7 @@ class Trainer():
         all_accuracies = []
         all_precisions = []
         all_f1s = []
-
+        self.model.eval()
         for _ in range(num_tests):
             total = len(self.test_data)
             update_interval = max(1, total // 10)  # 每1%更新一次，确保至少为1
@@ -179,7 +179,7 @@ class Trainer():
 
         print(
             f"Test Epoch {epoch} - Avg Loss: {avg_loss:.4f}, Avg Recall: {avg_recall:.4f}, Avg Accuracy: {avg_accuracy:.4f}, Avg Precision: {avg_precision:.4f}, Avg F1: {avg_f1:.4f}")
-
+        self.model.train()
         return avg_loss, avg_recall, avg_accuracy, avg_precision, avg_f1
 
     def load(self, file_path):
