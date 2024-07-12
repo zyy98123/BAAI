@@ -14,7 +14,7 @@ class DepthEmbeddingNetwork(nn.Module):
         self.linear_blockP = nn.ModuleList([nn.Linear(embedding_size, embedding_size) for _ in range(embedded_depth - 1)])
         self.linear_add_p = nn.Linear(embedding_size, embedding_size)
         self._initialize_weights()
-        self.dropout = nn.Dropout(0.5)
+        # self.dropout = nn.Dropout(0.5)
 
     def forward(self, attr_tensor, adj_tensor, tensor_u):
         # adj_tensor = torch.transpose(attr_tensor,0, 1)
@@ -23,9 +23,9 @@ class DepthEmbeddingNetwork(nn.Module):
         for layer in self.linear_blockP:
             tensor_u = F.relu(layer(tensor_u))
         tensor_u = self.linear_add_p(tensor_u)
-        tensor_u = self.dropout(tensor_u)
+        # tensor_u = self.dropout(tensor_u)
         influence_x = self.linearW1(attr_tensor)
-        influence_x = self.dropout(influence_x)
+        # influence_x = self.dropout(influence_x)
         tensor_u = F.tanh(influence_x + tensor_u)
         return tensor_u
 
@@ -44,7 +44,7 @@ class GraphEmbeddingNetwork(nn.Module):
         self.spreads_network = DepthEmbeddingNetwork(embedded_depth, vector_size, embedding_size)
         self.linearW2 = nn.Linear(embedding_size, embedding_size)
         nn.init.kaiming_normal_(self.linearW2.weight, nonlinearity='relu')
-        self.dropout = nn.Dropout(0.5)
+        # self.dropout = nn.Dropout(0.5)
 
     def forward(self, attr_tensor, adj_tensor, tensor_u):
         for times in range(self.spread_times):
@@ -52,5 +52,5 @@ class GraphEmbeddingNetwork(nn.Module):
         sum_tensor = torch.sum(tensor_u, dim=1)
         # print(tensor_u.shape, sum_tensor.shape)
         # print("看一下形状")
-        return self.dropout(self.linearW2(sum_tensor))
+        return self.linearW2(sum_tensor)
 

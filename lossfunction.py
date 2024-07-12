@@ -13,7 +13,7 @@ class CosSimLoss(nn.Module):
         loss = loss.mean()
         return loss
 
-
+# validation loss
 class MarginLoss(nn.Module):
 
     def __init__(self):
