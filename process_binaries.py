@@ -24,16 +24,16 @@ def process_directory(directory_path, notebook_script, output_folder):
 
     for root, _, files in os.walk(directory_path):
         for file in files:
-            if 'gcc-6.4.0_x86' in file:
+            if 'x86' in file:
                 file_path = os.path.join(root, file)
                 print(f"Found matching file: {file_path}")
                 process_binary_with_notebook(file_path, notebook_script, output_folder)
 
 
 # Example usage
-directory_path = "~/PycharmProjects/final_project_file/BAAI/binary_file"
-output_folder = "~/PycharmProjects/final_project_file/BAAI/output_CFG"
-notebook_script = "~/PycharmProjects/final_project_file/BAAI/output_CFG/binary_function_extra.py"
+directory_path = os.path.expanduser("~/PycharmProjects/final_project_file/BAAI/binary_file")
+output_folder = os.path.expanduser("~/PycharmProjects/final_project_file/BAAI/output_CFG")
+notebook_script = os.path.expanduser("~/PycharmProjects/final_project_file/BAAI/binary_function_extra.py")
 
 print(f"Directory Path: {directory_path}")
 print(f"Output Folder: {output_folder}")

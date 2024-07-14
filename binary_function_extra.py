@@ -149,8 +149,11 @@ def main(binary_path, output_folder):
         name_list.append(name)
 
     # Generate unique output filenames based on the input binary filename
-    input_filename = os.path.basename(binary_path)
-    base_filename, _ = os.path.splitext(input_filename)
+    base_filename = os.path.basename(binary_path)
+    # 在windows下文件名会出现.ELF后缀，而在linux下不会出现所以win下要进行 os.path.splitext(input_filename)截取.ELF
+    # print(input_filename)
+    # base_filename, _ = os.path.splitext(input_filename)
+    # print(base_filename)
     graphs_filename = f"{base_filename}_graphs.pkl"
     names_filename = f"{base_filename}_names.pkl"
 

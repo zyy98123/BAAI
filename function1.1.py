@@ -8,10 +8,12 @@ from tqdm import tqdm
 import torch
 import networkx as nx
 from concurrent.futures import ProcessPoolExecutor, as_completed
-
+# linux
 # 定义输入文件夹路径和输出文件夹路径（根据需要修改）
-input_folder_path = r"C:\Users\93293\OneDrive\桌面\FILE\LMU课程\SS24\Prak PL&AI\BAAIprak-main\BAAIprak-main\output"
-output_folder_path = r"C:\Users\93293\OneDrive\桌面\FILE\LMU课程\SS24\Prak PL&AI\BAAIprak-main\BAAIprak-main\dataset"
+input_folder_path = os.path.expanduser("~/PycharmProjects/final_project_file/BAAI/output_CFG")
+output_folder_path = os.path.expanduser("~/PycharmProjects/final_project_file/BAAI/data/generate")
+
+    # r"C:\Users\93293\OneDrive\桌面\FILE\LMU课程\SS24\Prak PL&AI\BAAIprak-main\BAAIprak-main\dataset"
 
 
 # 确保输出文件夹存在

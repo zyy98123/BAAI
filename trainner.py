@@ -57,7 +57,7 @@ class Trainer():
 
             attribute_vector1 = self.model.forward(data["attr_tensor1"], data["adj_tensor1"], tensor_u1)
             attribute_vector2 = self.model.forward(data["attr_tensor2"], data["adj_tensor2"], tensor_u2)
-            prediction, loss = self.criterion.forward(attribute_vector1, attribute_vector2, data["label"])
+            predictions, loss = self.criterion.forward(attribute_vector1, attribute_vector2, data["label"])
 
             self.optimizer.zero_grad()
             loss.backward()
@@ -128,6 +128,7 @@ class Trainer():
                 attribute_vector1 = self.model.forward(data["attr_tensor1"], data["adj_tensor1"], tensor_u1)
                 attribute_vector2 = self.model.forward(data["attr_tensor2"], data["adj_tensor2"], tensor_u2)
                 predictions, loss = self.criterion.forward(attribute_vector1, attribute_vector2, data["label"])
+
 
                 epoch_loss.append(loss.item())
 

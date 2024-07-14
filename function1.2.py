@@ -5,7 +5,7 @@ from itertools import combinations
 from tqdm import tqdm
 import torch
 import networkx as nx
-
+# windows
 # 定义输入文件夹路径和输出文件夹路径（根据需要修改）
 input_folder_path = r"C:\Users\93293\OneDrive\桌面\FILE\LMU课程\SS24\Prak PL&AI\BAAIprak-main\BAAIprak-main\output"
 output_folder_path = r"C:\Users\93293\OneDrive\桌面\FILE\LMU课程\SS24\Prak PL&AI\BAAIprak-main\BAAIprak-main\negativ item"
